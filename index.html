@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+<title>Blue Dash — 3D runner test</title>
+<style>
+  html,body{margin:0;height:100%;overflow:hidden;background:#000;font-family:Inter,system-ui,sans-serif;touch-action:none;user-select:none}
+  canvas{display:block;touch-action:none}
+  #hud{position:fixed;top:16px;left:18px;color:#fff;font-weight:800;font-size:22px;text-shadow:0 2px 6px #0008;letter-spacing:.5px}
+  #hud span{color:#ffd23a}
+  #over,#start{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;background:#0008}
+  #over{display:none}
+  h1{font-size:54px;margin:0 0 8px;letter-spacing:-1px} h1 b{color:#2a7bff}
+  p{opacity:.85;margin:6px 0;font-size:17px}
+  button{margin-top:18px;font:800 20px Inter,system-ui;padding:14px 34px;border:0;border-radius:40px;background:#2a7bff;color:#fff;cursor:pointer}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="hud">RINGS <span id="rings">0</span> &nbsp; SCORE <span id="score">0</span></div>
+<div id="start"><h1>BLUE <b>DASH</b></h1><p>← → or A/D to switch lanes · ↑ / Space to jump</p><p>Phone: drag — he follows your finger · flick up or tap to jump</p><button id="go" disabled>RUN</button></div>
+<div id="over"><h1>WIPEOUT</h1><p id="final"></p><button id="again">RUN AGAIN</button></div>
+<script type="module" src="./game.js"></script>
+</body>
+</html>
