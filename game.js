@@ -171,10 +171,14 @@ function reset() {
 }
 document.getElementById("go").onclick = reset;
 document.getElementById("again").onclick = reset;
+let lastScore = 0, lastRings = 0;
 function gameOver() {
   S.running = false;
-  document.getElementById("final").textContent = `Rings ${S.rings} · Score ${Math.floor(S.dist) + S.rings * 10}`;
+  lastScore = Math.floor(S.dist) + S.rings * 10;
+  lastRings = S.rings;
+  document.getElementById("final").textContent = `Rings ${S.rings} · Score ${lastScore}`;
   document.getElementById("over").style.display = "flex";
+  onGameOver(lastScore, lastRings);
 }
 
 // ---------- loop ----------
@@ -239,3 +243,58 @@ renderer.setAnimationLoop(() => {
   window.__info = { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, pr, pool: pool.ring.length + pool.spike.length, active: active.length };
 });
 addEventListener("resize", () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+
+// ---------- live global leaderboard ----------
+const API = "/api/scores";
+const $name = document.getElementById("name");
+const $submit = document.getElementById("submit");
+const $msg = document.getElementById("msg");
+const rowBoxes = [document.querySelector("#lb-start .rows"), document.querySelector("#lb-over .rows")];
+let myTs = 0;
+
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+function renderBoard(top) {
+  const html = top && top.length
+    ? top.map((s, i) => `<div class="row${s.ts === myTs ? " me" : ""}"><span class="rk">${i + 1}</span><span class="nm">${esc(s.name)}</span><span class="sc">${Number(s.score).toLocaleString()}</span></div>`).join("")
+    : `<div class="empty">No runs yet — be the first!</div>`;
+  rowBoxes.forEach((b) => { if (b) b.innerHTML = html; });
+}
+async function fetchBoard() {
+  try {
+    const r = await fetch(API, { cache: "no-store" });
+    if (!r.ok) throw 0;
+    const d = await r.json();
+    renderBoard(d.top);
+  } catch {
+    rowBoxes.forEach((b) => { if (b) b.innerHTML = `<div class="empty">Leaderboard offline</div>`; });
+  }
+}
+function onGameOver(score, rings) {
+  myTs = 0;
+  $name.value = localStorage.getItem("bd_name") || "";
+  $submit.disabled = false; $submit.textContent = "SUBMIT";
+  $msg.textContent = "";
+  fetchBoard();
+}
+$submit.onclick = async () => {
+  const name = ($name.value || "").trim() || "RUNNER";
+  localStorage.setItem("bd_name", name);
+  $submit.disabled = true; $submit.textContent = "…";
+  $msg.textContent = "Submitting…";
+  try {
+    const r = await fetch(API, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, score: lastScore, rings: lastRings }) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error || "failed");
+    const me = d.top.find((s) => s.name === name && s.score === lastScore);
+    myTs = me ? me.ts : 0;
+    renderBoard(d.top);
+    $msg.textContent = d.rank ? `You're #${d.rank} globally! 🎉` : "Score saved!";
+    $submit.textContent = "SAVED ✓";
+  } catch {
+    $msg.textContent = "Couldn't submit — try again.";
+    $submit.disabled = false; $submit.textContent = "SUBMIT";
+  }
+};
+// keep typing in the name field from steering/jumping the runner
+$name.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") { e.preventDefault(); $submit.click(); } });
+fetchBoard();

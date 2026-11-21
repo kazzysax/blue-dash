@@ -1,1 +1,1 @@
-{"headers":[{"source":"/sonic.glb","headers":[{"key":"Cache-Control","value":"public, max-age=86400"}]}]}
+{"framework": null, "buildCommand": null, "outputDirectory": ".", "installCommand": "npm install", "headers": [{"source": "/sonic.glb", "headers": [{"key": "Cache-Control", "value": "public, max-age=86400"}]}], "functions": {"api/scores.js": {"memory": 256, "maxDuration": 10}}}
